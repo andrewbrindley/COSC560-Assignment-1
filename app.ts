@@ -1,12 +1,36 @@
 class Controller{
     turn: number
+    header: Header
     game: Game
 
     constructor(){
         this.turn = 0;
+        this.header = new Header(this.turn);
         this.game = new Game(this.turn, 15, 15);
     }
 }
+
+class Header{
+    turn: PlayerTurn
+
+    constructor(turn: number){
+        this.turn = new PlayerTurn(turn);
+    }
+}
+
+class PlayerTurn{
+    turn: number
+    element: HTMLSpanElement
+
+    constructor(turn: number){
+        this.turn = turn;
+        this.element = document.createElement('span');
+        this.element.id = 'player';
+        this.element.textContent = "Hello";
+        document.getElementById('header')?.appendChild(this.element);
+    }
+}
+
 
 class Game{
     turn: number
@@ -19,11 +43,19 @@ class Game{
 
     tileClicked = (tile: Tile): void => {
         if (tile.value < 0){
-            tile.value = this.turn;
-            tile.element.classList.remove('empty');
-            tile.element.classList.add(!this.turn ? 'black' : 'white');
-            this.turn = (this.turn + 1) % 2;
+            this.placeTile(tile);
+            this.nextTurn();
         }
+    }
+
+    placeTile = (tile: Tile): void => {
+        tile.value = this.turn;
+        tile.element.classList.remove('empty');
+        tile.element.classList.add(!this.turn ? 'black' : 'white');
+    }
+
+    nextTurn = (): void => {
+        this.turn = (this.turn + 1) % 2;
     }
 
 }
@@ -68,4 +100,4 @@ class Tile{
 }
 
 
-const root = new Game(0, 15, 15);
+const root = new Controller();

@@ -9,9 +9,10 @@ body{
     flex: 1;
     padding: 1rem;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background-color: pink;
+    background-color: #FCF5E5;
     overflow: hidden;
 }
 
@@ -35,4 +36,14 @@ body{
 .black{
     background-color: rgb(41, 39, 39);
     border: 1px solid #000;
+}
+
+.header{
+    height: 10vh;
+    width: 30vw;
+    margin-bottom: 10px;
+    background-color: #ebd5b3;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }

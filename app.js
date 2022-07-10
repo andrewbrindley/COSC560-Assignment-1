@@ -11,20 +11,44 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 var Controller = /** @class */ (function () {
     function Controller() {
         this.turn = 0;
+        this.header = new Header(this.turn);
         this.game = new Game(this.turn, 15, 15);
     }
     return Controller;
+}());
+var Header = /** @class */ (function () {
+    function Header(turn) {
+        this.turn = new PlayerTurn(turn);
+    }
+    return Header;
+}());
+var PlayerTurn = /** @class */ (function () {
+    function PlayerTurn(turn) {
+        var _a;
+        this.turn = turn;
+        this.element = document.createElement('span');
+        this.element.id = 'player';
+        this.element.textContent = "Hello";
+        (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
+    }
+    return PlayerTurn;
 }());
 var Game = /** @class */ (function () {
     function Game(turn, rows, columns) {
         var _this = this;
         this.tileClicked = function (tile) {
             if (tile.value < 0) {
-                tile.value = _this.turn;
-                tile.element.classList.remove('empty');
-                tile.element.classList.add(!_this.turn ? 'black' : 'white');
-                _this.turn = (_this.turn + 1) % 2;
+                _this.placeTile(tile);
+                _this.nextTurn();
             }
+        };
+        this.placeTile = function (tile) {
+            tile.value = _this.turn;
+            tile.element.classList.remove('empty');
+            tile.element.classList.add(!_this.turn ? 'black' : 'white');
+        };
+        this.nextTurn = function () {
+            _this.turn = (_this.turn + 1) % 2;
         };
         this.turn = turn;
         this.grid = new Grid(rows, columns, this.tileClicked);
@@ -62,4 +86,4 @@ var Tile = /** @class */ (function () {
     }
     return Tile;
 }());
-var root = new Game(0, 15, 15);
+var root = new Controller();
