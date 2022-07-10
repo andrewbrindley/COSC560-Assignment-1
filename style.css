@@ -22,7 +22,17 @@ body{
     width: 60vw;
 }
 
-.tile{
+.empty{
     background-color: #ebd5b3;
     border: 1px solid black;
+}
+
+.white{
+    background-color: #FFF;
+    border: 1px solid black;
+}
+
+.black{
+    background-color: rgb(41, 39, 39);
+    border: 1px solid #000;
 }
