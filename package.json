@@ -1,0 +1,17 @@
+{
+  "name": "gomoku-typescript",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel index.html"
+  },
+  "dependencies": {
+    "parcel": "^2.6.2",
+    "typescript": "^4.7.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.0.3",
+    "parcel-bundler": "^1.12.5"
+  }
+}
