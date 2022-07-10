@@ -1,3 +1,7 @@
+class Controller{
+
+}
+
 class Tile{
     row: number
     column: number
@@ -28,6 +32,8 @@ class Grid{
         this.flatTiles = this.tiles.reduce((a, v) => a.concat([...v]), []);
         this.element = document.createElement('div');
         this.element.classList.add('grid');
+        this.element.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
+        this.element.style.gridTemplateColumns = `repeat(${this.columns}, 1fr)`;
         this.element.append(...this.flatTiles.map(t => t.element));
     }
 }

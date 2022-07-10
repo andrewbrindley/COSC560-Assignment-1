@@ -9,6 +9,11 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 var _a;
+var Controller = /** @class */ (function () {
+    function Controller() {
+    }
+    return Controller;
+}());
 var Tile = /** @class */ (function () {
     function Tile(row, column) {
         this.row = row;
@@ -31,6 +36,8 @@ var Grid = /** @class */ (function () {
         this.flatTiles = this.tiles.reduce(function (a, v) { return a.concat(__spreadArray([], v, true)); }, []);
         this.element = document.createElement('div');
         this.element.classList.add('grid');
+        this.element.style.gridTemplateRows = "repeat(".concat(this.rows, ", 1fr)");
+        this.element.style.gridTemplateColumns = "repeat(".concat(this.columns, ", 1fr)");
         (_a = this.element).append.apply(_a, this.flatTiles.map(function (t) { return t.element; }));
     }
     return Grid;

@@ -18,8 +18,6 @@ body{
 .grid{
     background-color: cyan;
     display: grid;
-    grid-template-columns: repeat(15, 1fr);
-    grid-template-rows: repeat(15, 1fr);
     height: 80vh;
     width: 60vw;
 }
