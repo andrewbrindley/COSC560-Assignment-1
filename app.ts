@@ -1,10 +1,13 @@
+import {findPaths} from './util';
+
+
 class Controller{
     turn: number
     game: Game
 
     constructor(){
         this.turn = 0;
-        this.game = new Game(this.turn, 15, 15);
+        this.game = new Game(this.turn, 5, 5);
     }
 }
 
@@ -14,14 +17,14 @@ class Game{
     start: number
     header: Header
     grid: Grid
-    moves: number[][]
+    placedTileCount: number
 
     constructor(turn: number, rows: number, columns: number){
         this.turn = turn;
         this.start = turn;
         this.header = new Header(this.turn, () => this.restart());
         this.grid = new Grid(rows, columns, this.tileClicked);
-        this.moves = [];
+        this.placedTileCount = 0;
     }
 
     tileClicked = (tile: Tile): void => {
@@ -32,11 +35,11 @@ class Game{
     }
 
     placeTile = (tile: Tile): void => {
-        const {row, column} = tile;
-        this.moves.push([row, column, this.turn])
         tile.value = this.turn;
         tile.element.classList.remove('empty');
         tile.element.classList.add(!this.turn ? 'black' : 'white');
+        const {row, column} = tile;
+        const paths = findPaths(this.grid.values(), this.turn, row, column);
     }
 
     nextTurn = (): void => {
@@ -54,14 +57,10 @@ class Game{
 
 class Header{
     turn: PlayerTurn
-    undo: HeaderItem
-    redo: HeaderItem
     restart: HeaderItem
 
     constructor(turn: number, restart: () => void){
         this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
-        this.undo = new HeaderItem('Undo', () =>{});
-        this.redo = new HeaderItem('Redo', () =>{});
         this.restart = new HeaderItem('Restart', restart);
     }
 }
@@ -111,6 +110,10 @@ class Grid{
         this.element.style.gridTemplateColumns = `repeat(${this.columns}, 1fr)`;
         this.element.append(...this.tiles.reduce((a, v) => a.concat([...v]), []).map(t => t.element));
         document.getElementById('game')?.appendChild(this.element);
+    }
+
+    values = (): number[][] => {
+        return this.tiles.map(row => row.map(t => t.value));
     }
     
 }

@@ -8,10 +8,12 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
+Object.defineProperty(exports, "__esModule", { value: true });
+var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
         this.turn = 0;
-        this.game = new Game(this.turn, 15, 15);
+        this.game = new Game(this.turn, 5, 5);
     }
     return Controller;
 }());
@@ -25,11 +27,11 @@ var Game = /** @class */ (function () {
             }
         };
         this.placeTile = function (tile) {
-            var row = tile.row, column = tile.column;
-            _this.moves.push([row, column, _this.turn]);
             tile.value = _this.turn;
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
+            var row = tile.row, column = tile.column;
+            var paths = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
@@ -44,15 +46,13 @@ var Game = /** @class */ (function () {
         this.start = turn;
         this.header = new Header(this.turn, function () { return _this.restart(); });
         this.grid = new Grid(rows, columns, this.tileClicked);
-        this.moves = [];
+        this.placedTileCount = 0;
     }
     return Game;
 }());
 var Header = /** @class */ (function () {
     function Header(turn, restart) {
         this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
-        this.undo = new HeaderItem('Undo', function () { });
-        this.redo = new HeaderItem('Redo', function () { });
         this.restart = new HeaderItem('Restart', restart);
     }
     return Header;
@@ -86,6 +86,9 @@ var Grid = /** @class */ (function () {
         var _a;
         var _this = this;
         var _b;
+        this.values = function () {
+            return _this.tiles.map(function (row) { return row.map(function (t) { return t.value; }); });
+        };
         this.rows = rows;
         this.columns = columns;
         this.tiles = __spreadArray([], Array(this.rows), true).map(function (_, i) { return __spreadArray([], Array(_this.columns), true).map(function (_, j) { return new Tile(i, j, tileClicked); }); });
