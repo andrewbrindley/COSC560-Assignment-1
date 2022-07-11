@@ -11,27 +11,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 var Controller = /** @class */ (function () {
     function Controller() {
         this.turn = 0;
-        this.header = new Header(this.turn);
         this.game = new Game(this.turn, 15, 15);
     }
     return Controller;
-}());
-var Header = /** @class */ (function () {
-    function Header(turn) {
-        this.turn = new PlayerTurn(turn);
-    }
-    return Header;
-}());
-var PlayerTurn = /** @class */ (function () {
-    function PlayerTurn(turn) {
-        var _a;
-        this.turn = turn;
-        this.element = document.createElement('span');
-        this.element.id = 'player';
-        this.element.textContent = "Hello";
-        (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
-    }
-    return PlayerTurn;
 }());
 var Game = /** @class */ (function () {
     function Game(turn, rows, columns) {
@@ -49,11 +31,52 @@ var Game = /** @class */ (function () {
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
+            _this.header.turn.element.textContent = !_this.turn ? 'Black' : 'White';
+        };
+        this.restart = function () {
+            console.log('Clicked');
+            _this.turn = _this.start;
+            _this.grid.tiles.forEach(function (row) { return row.forEach(function (tile) { return tile.reset(); }); });
+            _this.header.turn.element.textContent = !_this.turn ? 'Black' : 'White';
         };
         this.turn = turn;
+        this.start = turn;
+        this.header = new Header(this.turn, function () { return _this.restart(); });
         this.grid = new Grid(rows, columns, this.tileClicked);
+        this.placed = __spreadArray([], Array(rows).map(function (row) { return __spreadArray([], Array(columns), true).fill(-1); }), true);
     }
     return Game;
+}());
+var Header = /** @class */ (function () {
+    function Header(turn, restart) {
+        this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
+        this.undo = new HeaderItem('Undo', function () { });
+        this.restart = new HeaderItem('Restart', restart);
+    }
+    return Header;
+}());
+var PlayerTurn = /** @class */ (function () {
+    function PlayerTurn(text) {
+        var _a;
+        this.element = document.createElement('span');
+        this.element.textContent = text;
+        (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
+    }
+    return PlayerTurn;
+}());
+var HeaderItem = /** @class */ (function () {
+    function HeaderItem(text, func) {
+        var _a;
+        this.text = text;
+        this.func = func;
+        this.element = document.createElement('span');
+        this.element.textContent = text;
+        (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
+        this.element.addEventListener('click', function (_) {
+            func();
+        });
+    }
+    return HeaderItem;
 }());
 var Grid = /** @class */ (function () {
     function Grid(rows, columns, tileClicked) {
@@ -75,6 +98,12 @@ var Grid = /** @class */ (function () {
 var Tile = /** @class */ (function () {
     function Tile(row, column, tileClicked) {
         var _this = this;
+        this.reset = function () {
+            if (_this.value > -1) {
+                _this.element.classList.remove(!_this.value ? 'black' : 'white');
+                _this.element.classList.add('empty');
+            }
+        };
         this.row = row;
         this.column = column;
         this.value = -1;
