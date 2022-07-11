@@ -8,19 +8,20 @@ class Controller{
     }
 }
 
+
 class Game{
     turn: number
     start: number
     header: Header
     grid: Grid
-    placed: number[][]
+    moves: number[][]
 
     constructor(turn: number, rows: number, columns: number){
         this.turn = turn;
         this.start = turn;
         this.header = new Header(this.turn, () => this.restart());
         this.grid = new Grid(rows, columns, this.tileClicked);
-        this.placed = [...Array(rows).map(row => [...Array(columns)].fill(-1))]
+        this.moves = [];
     }
 
     tileClicked = (tile: Tile): void => {
@@ -31,6 +32,8 @@ class Game{
     }
 
     placeTile = (tile: Tile): void => {
+        const {row, column} = tile;
+        this.moves.push([row, column, this.turn])
         tile.value = this.turn;
         tile.element.classList.remove('empty');
         tile.element.classList.add(!this.turn ? 'black' : 'white');
@@ -42,7 +45,6 @@ class Game{
     }
 
     restart = (): void => {
-        console.log('Clicked');
         this.turn = this.start;
         this.grid.tiles.forEach(row => row.forEach(tile => tile.reset()));
         this.header.turn.element.textContent = !this.turn ? 'Black' : 'White';
@@ -53,11 +55,13 @@ class Game{
 class Header{
     turn: PlayerTurn
     undo: HeaderItem
+    redo: HeaderItem
     restart: HeaderItem
 
     constructor(turn: number, restart: () => void){
         this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
         this.undo = new HeaderItem('Undo', () =>{});
+        this.redo = new HeaderItem('Redo', () =>{});
         this.restart = new HeaderItem('Restart', restart);
     }
 }
@@ -81,6 +85,7 @@ class HeaderItem{
         this.text = text;
         this.func = func;
         this.element = document.createElement('span');
+        this.element.classList.add('headerItem');
         this.element.textContent = text;
         document.getElementById('header')?.appendChild(this.element);
         this.element.addEventListener('click', _ => {
@@ -131,6 +136,7 @@ class Tile{
         if (this.value > -1){
             this.element.classList.remove(!this.value ? 'black' : 'white')
             this.element.classList.add('empty');
+            this.value = -1;
         }
     }
 }

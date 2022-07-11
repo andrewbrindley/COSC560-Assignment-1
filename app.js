@@ -25,6 +25,8 @@ var Game = /** @class */ (function () {
             }
         };
         this.placeTile = function (tile) {
+            var row = tile.row, column = tile.column;
+            _this.moves.push([row, column, _this.turn]);
             tile.value = _this.turn;
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
@@ -34,7 +36,6 @@ var Game = /** @class */ (function () {
             _this.header.turn.element.textContent = !_this.turn ? 'Black' : 'White';
         };
         this.restart = function () {
-            console.log('Clicked');
             _this.turn = _this.start;
             _this.grid.tiles.forEach(function (row) { return row.forEach(function (tile) { return tile.reset(); }); });
             _this.header.turn.element.textContent = !_this.turn ? 'Black' : 'White';
@@ -43,7 +44,7 @@ var Game = /** @class */ (function () {
         this.start = turn;
         this.header = new Header(this.turn, function () { return _this.restart(); });
         this.grid = new Grid(rows, columns, this.tileClicked);
-        this.placed = __spreadArray([], Array(rows).map(function (row) { return __spreadArray([], Array(columns), true).fill(-1); }), true);
+        this.moves = [];
     }
     return Game;
 }());
@@ -51,6 +52,7 @@ var Header = /** @class */ (function () {
     function Header(turn, restart) {
         this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
         this.undo = new HeaderItem('Undo', function () { });
+        this.redo = new HeaderItem('Redo', function () { });
         this.restart = new HeaderItem('Restart', restart);
     }
     return Header;
@@ -70,6 +72,7 @@ var HeaderItem = /** @class */ (function () {
         this.text = text;
         this.func = func;
         this.element = document.createElement('span');
+        this.element.classList.add('headerItem');
         this.element.textContent = text;
         (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
         this.element.addEventListener('click', function (_) {
@@ -102,6 +105,7 @@ var Tile = /** @class */ (function () {
             if (_this.value > -1) {
                 _this.element.classList.remove(!_this.value ? 'black' : 'white');
                 _this.element.classList.add('empty');
+                _this.value = -1;
             }
         };
         this.row = row;
