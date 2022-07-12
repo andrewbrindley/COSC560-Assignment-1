@@ -13,7 +13,7 @@ var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
         this.turn = 0;
-        this.game = new Game(this.turn, 5, 5);
+        this.game = new Game(this.turn, 10, 10);
     }
     return Controller;
 }());
@@ -31,7 +31,7 @@ var Game = /** @class */ (function () {
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
             var row = tile.row, column = tile.column;
-            var paths = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
+            (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;

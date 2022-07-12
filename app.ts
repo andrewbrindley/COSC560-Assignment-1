@@ -7,7 +7,7 @@ class Controller{
 
     constructor(){
         this.turn = 0;
-        this.game = new Game(this.turn, 5, 5);
+        this.game = new Game(this.turn, 10, 10);
     }
 }
 
@@ -39,7 +39,7 @@ class Game{
         tile.element.classList.remove('empty');
         tile.element.classList.add(!this.turn ? 'black' : 'white');
         const {row, column} = tile;
-        const paths = findPaths(this.grid.values(), this.turn, row, column);
+        findPaths(this.grid.values(), this.turn, row, column);
     }
 
     nextTurn = (): void => {
