@@ -31,7 +31,17 @@ var Game = /** @class */ (function () {
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
             var row = tile.row, column = tile.column;
-            (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
+            var pv = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
+            for (var _i = 0, pv_1 = pv; _i < pv_1.length; _i++) {
+                var p = pv_1[_i];
+                for (var _a = 0, p_1 = p; _a < p_1.length; _a++) {
+                    var path = p_1[_a];
+                    for (var _b = 0, path_1 = path; _b < path_1.length; _b++) {
+                        var _c = path_1[_b], x = _c[0], y = _c[1];
+                        _this.grid.tiles[x][y].element.classList.add('path');
+                    }
+                }
+            }
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;

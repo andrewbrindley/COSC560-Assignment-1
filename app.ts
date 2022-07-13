@@ -39,7 +39,14 @@ class Game{
         tile.element.classList.remove('empty');
         tile.element.classList.add(!this.turn ? 'black' : 'white');
         const {row, column} = tile;
-        findPaths(this.grid.values(), this.turn, row, column);
+        const pv: number[][][][] = findPaths(this.grid.values(), this.turn, row, column);
+        for (const p of pv){
+            for (const path of p){
+                for (const [x, y] of path){
+                    this.grid.tiles[x][y].element.classList.add('path');
+                }
+            }
+        }
     }
 
     nextTurn = (): void => {

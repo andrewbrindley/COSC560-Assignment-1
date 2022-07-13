@@ -1,14 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.findPaths = void 0;
-var inGrid = function (grid, i, j) {
-    return 0 <= i && i < grid.length && 0 <= j && j < grid[i].length;
-};
-var findSequences = function (arr, turn) {
+var findSequences = function (indices, grid, turn) {
     var out = [], cur = [];
-    for (var i = 0; i < arr.length - 4; i++) {
-        if (arr[i] === turn) {
-            cur.push(i);
+    for (var _i = 0, indices_1 = indices; _i < indices_1.length; _i++) {
+        var _a = indices_1[_i], i = _a[0], j = _a[1];
+        if (grid[i][j] === turn) {
+            cur.push([i, j]);
         }
         else {
             if (cur.length >= 5)
@@ -16,6 +14,8 @@ var findSequences = function (arr, turn) {
             cur = [];
         }
     }
+    if (cur.length >= 5)
+        out.push(cur);
     return out;
 };
 var primaryDiagonal = function (grid, i, j) {
@@ -31,12 +31,17 @@ var secondaryDiagonal = function (grid, i, j) {
     return grid.slice(startX, startX + count).map(function (_, index) { return [startX + index, startY - index]; });
 };
 var findPaths = function (grid, turn, i, j) {
-    var out = [];
-    var horizontal = findSequences(grid[i], turn);
-    var vertical = findSequences(grid.map(function (row) { return row[j]; }), turn);
+    var horizontal = grid[i].map(function (_, index) { return [i, index]; });
+    var vertical = grid.map(function (_, index) { return [index, j]; });
     var prim = primaryDiagonal(grid, i, j);
     var sec = secondaryDiagonal(grid, i, j);
-    console.log(sec);
-    return out;
+    var groups = [horizontal, vertical, prim, sec];
+    var paths = groups.map(function (group, index) {
+        var seq = findSequences(group, grid, turn);
+        if (index === 1)
+            console.log(seq);
+        return seq;
+    });
+    return paths;
 };
 exports.findPaths = findPaths;
