@@ -13,7 +13,7 @@ var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
         var _this = this;
-        var _a, _b;
+        var _a;
         this.playing = false;
         this.turn = 0;
         this.game = new Game(this.turn, 10, 10);
@@ -22,12 +22,6 @@ var Controller = /** @class */ (function () {
             var element = document.getElementById('start');
             if (element)
                 element.style.backgroundColor = !_this.turn ? '#000000' : '#FFFFFF';
-        });
-        (_b = document.getElementById('switch')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', function (_) {
-            _this.turn = (_this.turn + 1) % 2;
-            var element = document.getElementById('start');
-            if (element)
-                element.style.backgroundColor = _this.turn ? '#000000' : '#FFFFFF';
         });
     }
     Controller.prototype.activateMenu = function () {

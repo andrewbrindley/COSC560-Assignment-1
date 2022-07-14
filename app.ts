@@ -15,12 +15,6 @@ class Controller{
             const element = document.getElementById('start');
             if (element) element.style.backgroundColor = !this.turn ? '#000000' : '#FFFFFF';
         });
-
-        document.getElementById('switch')?.addEventListener('click', _ => {
-            this.turn = (this.turn + 1) % 2;
-            const element = document.getElementById('start');
-            if (element) element.style.backgroundColor = this.turn ? '#000000' : '#FFFFFF';
-        });
     }
 
     activateMenu(){
