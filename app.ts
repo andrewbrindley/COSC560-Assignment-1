@@ -4,22 +4,41 @@ import {findPaths} from './util';
 class Controller{
     playing: boolean
     turn: number
-    game: Game
+    n: number
+    game: Game | null;
 
     constructor(){
         this.playing = false
         this.turn = 0;
-        this.game = new Game(this.turn, 10, 10);
+        this.n = -1;
+        this.game = null;
         document.getElementById('switch')?.addEventListener('click', _ => {
             this.turn = (this.turn + 1) % 2;
             const element = document.getElementById('start');
             if (element) element.style.backgroundColor = !this.turn ? '#000000' : '#FFFFFF';
         });
+
+        document.getElementById('boardSizeInput')?.addEventListener('change', e => {
+            const t = (e.target as HTMLTextAreaElement).value;
+            if (/^\d+$/.test(t)) this.n = Math.max(15, Number(t));
+        })
+
+        document.getElementById('startGame')?.addEventListener('click', _ => {
+            this.startGame();
+        })
     }
 
     activateMenu(){
         const menu = document.getElementById('modal');
         if (menu) menu.style.visibility = 'visible';
+    }
+
+    startGame(){
+        if (0 <= this.n && this.n < 16){
+            this.game = new Game(this.turn, this.n, this.n);
+            const modal = document.getElementById('modal');
+            if (modal) modal.style.visibility = 'hidden';
+        }
     }
 }
 

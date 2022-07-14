@@ -13,21 +13,38 @@ var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
         var _this = this;
-        var _a;
+        var _a, _b, _c;
         this.playing = false;
         this.turn = 0;
-        this.game = new Game(this.turn, 10, 10);
+        this.n = -1;
+        this.game = null;
         (_a = document.getElementById('switch')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (_) {
             _this.turn = (_this.turn + 1) % 2;
             var element = document.getElementById('start');
             if (element)
                 element.style.backgroundColor = !_this.turn ? '#000000' : '#FFFFFF';
         });
+        (_b = document.getElementById('boardSizeInput')) === null || _b === void 0 ? void 0 : _b.addEventListener('change', function (e) {
+            var t = e.target.value;
+            if (/^\d+$/.test(t))
+                _this.n = Math.max(15, Number(t));
+        });
+        (_c = document.getElementById('startGame')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', function (_) {
+            _this.startGame();
+        });
     }
     Controller.prototype.activateMenu = function () {
         var menu = document.getElementById('modal');
         if (menu)
             menu.style.visibility = 'visible';
+    };
+    Controller.prototype.startGame = function () {
+        if (0 <= this.n && this.n < 16) {
+            this.game = new Game(this.turn, this.n, this.n);
+            var modal = document.getElementById('modal');
+            if (modal)
+                modal.style.visibility = 'hidden';
+        }
     };
     return Controller;
 }());
