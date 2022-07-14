@@ -35,13 +35,6 @@ var findPaths = function (grid, turn, i, j) {
     var vertical = grid.map(function (_, index) { return [index, j]; });
     var prim = primaryDiagonal(grid, i, j);
     var sec = secondaryDiagonal(grid, i, j);
-    var groups = [horizontal, vertical, prim, sec];
-    var paths = groups.map(function (group, index) {
-        var seq = findSequences(group, grid, turn);
-        if (index === 1)
-            console.log(seq);
-        return seq;
-    });
-    return paths;
+    return [horizontal, vertical, prim, sec].map(function (group) { return findSequences(group, grid, turn); }).flat();
 };
 exports.findPaths = findPaths;

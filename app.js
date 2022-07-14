@@ -12,9 +12,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
+        this.playing = false;
         this.turn = 0;
         this.game = new Game(this.turn, 10, 10);
     }
+    Controller.prototype.activateMenu = function () {
+        var menu = document.getElementById('modal');
+        if (menu)
+            menu.style.visibility = 'visible';
+    };
     return Controller;
 }());
 var Game = /** @class */ (function () {
@@ -31,17 +37,17 @@ var Game = /** @class */ (function () {
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
             var row = tile.row, column = tile.column;
-            var pv = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
-            for (var _i = 0, pv_1 = pv; _i < pv_1.length; _i++) {
-                var p = pv_1[_i];
-                for (var _a = 0, p_1 = p; _a < p_1.length; _a++) {
-                    var path = p_1[_a];
-                    for (var _b = 0, path_1 = path; _b < path_1.length; _b++) {
-                        var _c = path_1[_b], x = _c[0], y = _c[1];
-                        _this.grid.tiles[x][y].element.classList.add('path');
-                    }
+            var paths = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
+            for (var _i = 0, paths_1 = paths; _i < paths_1.length; _i++) {
+                var path = paths_1[_i];
+                for (var _a = 0, path_1 = path; _a < path_1.length; _a++) {
+                    var _b = path_1[_a], x = _b[0], y = _b[1];
+                    _this.grid.tiles[x][y].element.classList.add('path');
                 }
             }
+            ;
+            _this.gameOver = paths.length > 0;
+            _this.placed += 1;
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
@@ -56,7 +62,8 @@ var Game = /** @class */ (function () {
         this.start = turn;
         this.header = new Header(this.turn, function () { return _this.restart(); });
         this.grid = new Grid(rows, columns, this.tileClicked);
-        this.placedTileCount = 0;
+        this.gameOver = false;
+        this.placed = 0;
     }
     return Game;
 }());
@@ -116,8 +123,7 @@ var Tile = /** @class */ (function () {
         var _this = this;
         this.reset = function () {
             if (_this.value > -1) {
-                _this.element.classList.remove(!_this.value ? 'black' : 'white');
-                _this.element.classList.add('empty');
+                _this.element.className = "empty";
                 _this.value = -1;
             }
         };

@@ -2,12 +2,19 @@ import {findPaths} from './util';
 
 
 class Controller{
+    playing: boolean
     turn: number
     game: Game
 
     constructor(){
+        this.playing = false
         this.turn = 0;
         this.game = new Game(this.turn, 10, 10);
+    }
+
+    activateMenu(){
+        const menu = document.getElementById('modal');
+        if (menu) menu.style.visibility = 'visible';
     }
 }
 
@@ -17,14 +24,16 @@ class Game{
     start: number
     header: Header
     grid: Grid
-    placedTileCount: number
+    gameOver: boolean
+    placed: number
 
     constructor(turn: number, rows: number, columns: number){
         this.turn = turn;
         this.start = turn;
         this.header = new Header(this.turn, () => this.restart());
         this.grid = new Grid(rows, columns, this.tileClicked);
-        this.placedTileCount = 0;
+        this.gameOver = false;
+        this.placed = 0;
     }
 
     tileClicked = (tile: Tile): void => {
@@ -39,14 +48,14 @@ class Game{
         tile.element.classList.remove('empty');
         tile.element.classList.add(!this.turn ? 'black' : 'white');
         const {row, column} = tile;
-        const pv: number[][][][] = findPaths(this.grid.values(), this.turn, row, column);
-        for (const p of pv){
-            for (const path of p){
-                for (const [x, y] of path){
-                    this.grid.tiles[x][y].element.classList.add('path');
-                }
+        const paths: number[][][] = findPaths(this.grid.values(), this.turn, row, column);
+        for (const path of paths){
+            for (const [x, y] of path){
+                this.grid.tiles[x][y].element.classList.add('path');
             }
-        }
+        };
+        this.gameOver = paths.length > 0;
+        this.placed += 1;
     }
 
     nextTurn = (): void => {
@@ -144,8 +153,7 @@ class Tile{
 
     reset = (): void => {
         if (this.value > -1){
-            this.element.classList.remove(!this.value ? 'black' : 'white')
-            this.element.classList.add('empty');
+            this.element.className = "empty";
             this.value = -1;
         }
     }
