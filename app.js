@@ -12,9 +12,23 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
+        var _this = this;
+        var _a, _b;
         this.playing = false;
         this.turn = 0;
         this.game = new Game(this.turn, 10, 10);
+        (_a = document.getElementById('switch')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (_) {
+            _this.turn = (_this.turn + 1) % 2;
+            var element = document.getElementById('start');
+            if (element)
+                element.style.backgroundColor = !_this.turn ? '#000000' : '#FFFFFF';
+        });
+        (_b = document.getElementById('switch')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', function (_) {
+            _this.turn = (_this.turn + 1) % 2;
+            var element = document.getElementById('start');
+            if (element)
+                element.style.backgroundColor = _this.turn ? '#000000' : '#FFFFFF';
+        });
     }
     Controller.prototype.activateMenu = function () {
         var menu = document.getElementById('modal');
@@ -51,16 +65,14 @@ var Game = /** @class */ (function () {
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
-            _this.header.turn.element.textContent = !_this.turn ? 'Black' : 'White';
         };
         this.restart = function () {
             _this.turn = _this.start;
             _this.grid.tiles.forEach(function (row) { return row.forEach(function (tile) { return tile.reset(); }); });
-            _this.header.turn.element.textContent = !_this.turn ? 'Black' : 'White';
         };
         this.turn = turn;
         this.start = turn;
-        this.header = new Header(this.turn, function () { return _this.restart(); });
+        this.header = new Header(function () { return _this.restart(); });
         this.grid = new Grid(rows, columns, this.tileClicked);
         this.gameOver = false;
         this.placed = 0;
@@ -68,35 +80,20 @@ var Game = /** @class */ (function () {
     return Game;
 }());
 var Header = /** @class */ (function () {
-    function Header(turn, restart) {
-        this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
-        this.restart = new HeaderItem('Restart', restart);
+    function Header(restart) {
+        this.restart = new Restart(restart);
     }
     return Header;
 }());
-var PlayerTurn = /** @class */ (function () {
-    function PlayerTurn(text) {
+var Restart = /** @class */ (function () {
+    function Restart(func) {
         var _a;
-        this.element = document.createElement('span');
-        this.element.textContent = text;
-        (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
-    }
-    return PlayerTurn;
-}());
-var HeaderItem = /** @class */ (function () {
-    function HeaderItem(text, func) {
-        var _a;
-        this.text = text;
         this.func = func;
-        this.element = document.createElement('span');
-        this.element.classList.add('headerItem');
-        this.element.textContent = text;
-        (_a = document.getElementById('header')) === null || _a === void 0 ? void 0 : _a.appendChild(this.element);
-        this.element.addEventListener('click', function (_) {
+        (_a = document.getElementById('restart')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (_) {
             func();
         });
     }
-    return HeaderItem;
+    return Restart;
 }());
 var Grid = /** @class */ (function () {
     function Grid(rows, columns, tileClicked) {

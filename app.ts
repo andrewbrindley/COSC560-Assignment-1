@@ -10,6 +10,17 @@ class Controller{
         this.playing = false
         this.turn = 0;
         this.game = new Game(this.turn, 10, 10);
+        document.getElementById('switch')?.addEventListener('click', _ => {
+            this.turn = (this.turn + 1) % 2;
+            const element = document.getElementById('start');
+            if (element) element.style.backgroundColor = !this.turn ? '#000000' : '#FFFFFF';
+        });
+
+        document.getElementById('switch')?.addEventListener('click', _ => {
+            this.turn = (this.turn + 1) % 2;
+            const element = document.getElementById('start');
+            if (element) element.style.backgroundColor = this.turn ? '#000000' : '#FFFFFF';
+        });
     }
 
     activateMenu(){
@@ -30,7 +41,7 @@ class Game{
     constructor(turn: number, rows: number, columns: number){
         this.turn = turn;
         this.start = turn;
-        this.header = new Header(this.turn, () => this.restart());
+        this.header = new Header(() => this.restart());
         this.grid = new Grid(rows, columns, this.tileClicked);
         this.gameOver = false;
         this.placed = 0;
@@ -60,50 +71,30 @@ class Game{
 
     nextTurn = (): void => {
         this.turn = (this.turn + 1) % 2;
-        this.header.turn.element.textContent = !this.turn ? 'Black' : 'White';
     }
 
     restart = (): void => {
         this.turn = this.start;
         this.grid.tiles.forEach(row => row.forEach(tile => tile.reset()));
-        this.header.turn.element.textContent = !this.turn ? 'Black' : 'White';
     }
 
 }
 
 class Header{
-    turn: PlayerTurn
-    restart: HeaderItem
+    restart: Restart
 
-    constructor(turn: number, restart: () => void){
-        this.turn = new PlayerTurn(!turn ? 'Black' : 'White');
-        this.restart = new HeaderItem('Restart', restart);
+    constructor(restart: () => void){
+        this.restart = new Restart(restart);
     }
 }
 
-class PlayerTurn{
-    element: HTMLSpanElement
 
-    constructor(text: string){
-        this.element = document.createElement('span');
-        this.element.textContent = text;
-        document.getElementById('header')?.appendChild(this.element);
-    }
-}
-
-class HeaderItem{
-    text: string
+class Restart{
     func: () => void
-    element: HTMLSpanElement
 
-    constructor(text: string, func: () => void){
-        this.text = text;
+    constructor(func: () => void){
         this.func = func;
-        this.element = document.createElement('span');
-        this.element.classList.add('headerItem');
-        this.element.textContent = text;
-        document.getElementById('header')?.appendChild(this.element);
-        this.element.addEventListener('click', _ => {
+        document.getElementById('restart')?.addEventListener('click', _ => {
             func();
         });
     }
