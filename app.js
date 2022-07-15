@@ -10,18 +10,32 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var util_1 = require("./util");
+var STATUS;
+(function (STATUS) {
+    STATUS[STATUS["WHITE"] = 0] = "WHITE";
+    STATUS[STATUS["BLACK"] = 1] = "BLACK";
+    STATUS[STATUS["DRAW"] = 2] = "DRAW";
+    STATUS[STATUS["RESTART"] = 3] = "RESTART";
+    STATUS[STATUS["PLAY"] = 4] = "PLAY";
+})(STATUS || (STATUS = {}));
+;
 var Controller = /** @class */ (function () {
     function Controller() {
         var _this = this;
         var _a, _b, _c, _d;
-        this.restart = function () {
-            var _a;
+        this.restart = function (status) {
             var modal = document.getElementById('modal');
             if (modal)
                 modal.style.visibility = 'visible';
             _this.game = null;
-            (_a = document.getElementById('grid')) === null || _a === void 0 ? void 0 : _a.remove();
             _this.hideHeader();
+            var modalHeader = document.getElementById('modalHeader');
+            if (modalHeader) {
+                modalHeader.textContent = status == STATUS.WHITE ? 'White wins'
+                    : status == STATUS.BLACK ? 'Black wins'
+                        : status == STATUS.DRAW ? 'Draw'
+                            : 'New game';
+            }
         };
         this.playing = false;
         this.turn = 0;
@@ -42,7 +56,7 @@ var Controller = /** @class */ (function () {
             _this.startGame();
         });
         (_d = document.getElementById('restart')) === null || _d === void 0 ? void 0 : _d.addEventListener('click', function (_) {
-            _this.restart();
+            _this.restart(STATUS.RESTART);
         });
     }
     Controller.prototype.activateMenu = function () {
@@ -51,8 +65,10 @@ var Controller = /** @class */ (function () {
             menu.style.visibility = 'visible';
     };
     Controller.prototype.startGame = function () {
+        var _a;
         if (0 <= this.n && this.n < 16) {
-            this.game = new Game(this.turn, this.n, this.n);
+            (_a = document.getElementById('grid')) === null || _a === void 0 ? void 0 : _a.remove();
+            this.game = new Game(this.turn, this.n, this.n, this);
             var modal = document.getElementById('modal');
             if (modal)
                 modal.style.visibility = 'hidden';
@@ -72,10 +88,10 @@ var Controller = /** @class */ (function () {
     return Controller;
 }());
 var Game = /** @class */ (function () {
-    function Game(turn, rows, columns) {
+    function Game(turn, rows, columns, controller) {
         var _this = this;
         this.tileClicked = function (tile) {
-            if (tile.value < 0) {
+            if (tile.value < 0 && _this.status === STATUS.PLAY) {
                 _this.placeTile(tile);
                 _this.nextTurn();
             }
@@ -87,15 +103,25 @@ var Game = /** @class */ (function () {
             var row = tile.row, column = tile.column;
             var paths = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
             for (var _i = 0, paths_1 = paths; _i < paths_1.length; _i++) {
-                var path = paths_1[_i];
-                for (var _a = 0, path_1 = path; _a < path_1.length; _a++) {
+                var path_2 = paths_1[_i];
+                for (var _a = 0, path_1 = path_2; _a < path_1.length; _a++) {
                     var _b = path_1[_a], x = _b[0], y = _b[1];
                     _this.grid.tiles[x][y].element.classList.add('path');
                 }
             }
             ;
-            _this.gameOver = paths.length > 0;
             _this.placed += 1;
+            if (paths.length > 0) {
+                _this.gameOver = true;
+                _this.status = !_this.turn ? STATUS.BLACK : STATUS.WHITE;
+            }
+            else if (_this.placed == _this.grid.rows * _this.grid.columns) {
+                _this.gameOver = true;
+                _this.status = STATUS.DRAW;
+            }
+            ;
+            if (_this.gameOver)
+                _this.controller.restart(_this.status);
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
@@ -104,12 +130,19 @@ var Game = /** @class */ (function () {
             _this.turn = _this.start;
             _this.grid.tiles.forEach(function (row) { return row.forEach(function (tile) { return tile.reset(); }); });
         };
+        this.endGame = function () {
+            var modal = document.getElementById('modal');
+            if (modal)
+                modal.style.visibility = 'visible';
+        };
         this.turn = turn;
         this.start = turn;
         this.header = new Header(function () { return _this.restart(); });
         this.grid = new Grid(rows, columns, this.tileClicked);
         this.gameOver = false;
         this.placed = 0;
+        this.controller = controller;
+        this.status = STATUS.PLAY;
     }
     return Game;
 }());

@@ -1,5 +1,15 @@
+import { throws } from 'assert';
+import path from 'path';
 import {findPaths} from './util';
 
+
+enum STATUS {
+    WHITE,
+    BLACK,
+    DRAW,
+    RESTART,
+    PLAY
+};
 
 class Controller{
     playing: boolean
@@ -28,7 +38,7 @@ class Controller{
         });
 
         document.getElementById('restart')?.addEventListener('click', _ => {
-            this.restart();
+            this.restart(STATUS.RESTART);
         });
     }
 
@@ -39,7 +49,8 @@ class Controller{
 
     startGame(){
         if (0 <= this.n && this.n < 16){
-            this.game = new Game(this.turn, this.n, this.n);
+            document.getElementById('grid')?.remove();
+            this.game = new Game(this.turn, this.n, this.n, this);
             const modal = document.getElementById('modal');
             if (modal) modal.style.visibility = 'hidden';
             this.showHeader();
@@ -56,12 +67,18 @@ class Controller{
         if (header) header.style.visibility = 'hidden';
     }
 
-    restart = (): void => {
+    restart = (status: STATUS): void => {
         const modal = document.getElementById('modal');
         if (modal) modal.style.visibility = 'visible';
         this.game = null;
-        document.getElementById('grid')?.remove();
         this.hideHeader()
+        const modalHeader = document.getElementById('modalHeader');
+        if (modalHeader){
+            modalHeader.textContent = status == STATUS.WHITE ? 'White wins' 
+            : status == STATUS.BLACK ? 'Black wins' 
+            : status == STATUS.DRAW ? 'Draw'
+            : 'New game';
+        }
     }
 }
 
@@ -73,19 +90,23 @@ class Game{
     grid: Grid
     gameOver: boolean
     placed: number
+    controller: Controller
+    status: STATUS
 
-    constructor(turn: number, rows: number, columns: number){
+    constructor(turn: number, rows: number, columns: number, controller: Controller){
         this.turn = turn;
         this.start = turn;
         this.header = new Header(() => this.restart());
         this.grid = new Grid(rows, columns, this.tileClicked);
         this.gameOver = false;
         this.placed = 0;
+        this.controller = controller;
+        this.status = STATUS.PLAY;
     }
 
     tileClicked = (tile: Tile): void => {
 
-        if (tile.value < 0){
+        if (tile.value < 0 && this.status === STATUS.PLAY){
             this.placeTile(tile);
             this.nextTurn();
         }
@@ -102,8 +123,15 @@ class Game{
                 this.grid.tiles[x][y].element.classList.add('path');
             }
         };
-        this.gameOver = paths.length > 0;
         this.placed += 1;
+        if (paths.length > 0){
+            this.gameOver = true;
+            this.status = !this.turn ? STATUS.BLACK : STATUS.WHITE;
+        } else if (this.placed == this.grid.rows * this.grid.columns){
+            this.gameOver = true;
+            this.status = STATUS.DRAW;
+        };
+        if (this.gameOver) this.controller.restart(this.status);
     }
 
     nextTurn = (): void => {
@@ -113,6 +141,11 @@ class Game{
     restart = (): void => {
         this.turn = this.start;
         this.grid.tiles.forEach(row => row.forEach(tile => tile.reset()));
+    }
+
+    endGame = (): void => {
+        const modal = document.getElementById('modal');
+        if (modal) modal.style.visibility = 'visible';
     }
 
 }
