@@ -13,10 +13,19 @@ var util_1 = require("./util");
 var Controller = /** @class */ (function () {
     function Controller() {
         var _this = this;
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
+        this.restart = function () {
+            var _a;
+            var modal = document.getElementById('modal');
+            if (modal)
+                modal.style.visibility = 'visible';
+            _this.game = null;
+            (_a = document.getElementById('grid')) === null || _a === void 0 ? void 0 : _a.remove();
+            _this.hideHeader();
+        };
         this.playing = false;
         this.turn = 0;
-        this.n = -1;
+        this.n = 15;
         this.game = null;
         (_a = document.getElementById('switch')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (_) {
             _this.turn = (_this.turn + 1) % 2;
@@ -24,13 +33,16 @@ var Controller = /** @class */ (function () {
             if (element)
                 element.style.backgroundColor = !_this.turn ? '#000000' : '#FFFFFF';
         });
-        (_b = document.getElementById('boardSizeInput')) === null || _b === void 0 ? void 0 : _b.addEventListener('change', function (e) {
+        (_b = document.getElementById('boardSizeInput')) === null || _b === void 0 ? void 0 : _b.addEventListener('input', function (e) {
             var t = e.target.value;
             if (/^\d+$/.test(t))
-                _this.n = Math.max(15, Number(t));
+                _this.n = Math.min(15, Number(t));
         });
         (_c = document.getElementById('startGame')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', function (_) {
             _this.startGame();
+        });
+        (_d = document.getElementById('restart')) === null || _d === void 0 ? void 0 : _d.addEventListener('click', function (_) {
+            _this.restart();
         });
     }
     Controller.prototype.activateMenu = function () {
@@ -44,7 +56,18 @@ var Controller = /** @class */ (function () {
             var modal = document.getElementById('modal');
             if (modal)
                 modal.style.visibility = 'hidden';
+            this.showHeader();
         }
+    };
+    Controller.prototype.showHeader = function () {
+        var header = document.getElementById('header');
+        if (header)
+            header.style.visibility = 'visible';
+    };
+    Controller.prototype.hideHeader = function () {
+        var header = document.getElementById('header');
+        if (header)
+            header.style.visibility = 'hidden';
     };
     return Controller;
 }());
@@ -119,6 +142,7 @@ var Grid = /** @class */ (function () {
         this.tiles = __spreadArray([], Array(this.rows), true).map(function (_, i) { return __spreadArray([], Array(_this.columns), true).map(function (_, j) { return new Tile(i, j, tileClicked); }); });
         this.element = document.createElement('div');
         this.element.classList.add('grid');
+        this.element.id = 'grid';
         this.element.style.gridTemplateRows = "repeat(".concat(this.rows, ", 1fr)");
         this.element.style.gridTemplateColumns = "repeat(".concat(this.columns, ", 1fr)");
         (_a = this.element).append.apply(_a, this.tiles.reduce(function (a, v) { return a.concat(__spreadArray([], v, true)); }, []).map(function (t) { return t.element; }));

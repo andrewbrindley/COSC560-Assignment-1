@@ -10,7 +10,7 @@ class Controller{
     constructor(){
         this.playing = false
         this.turn = 0;
-        this.n = -1;
+        this.n = 15;
         this.game = null;
         document.getElementById('switch')?.addEventListener('click', _ => {
             this.turn = (this.turn + 1) % 2;
@@ -18,14 +18,18 @@ class Controller{
             if (element) element.style.backgroundColor = !this.turn ? '#000000' : '#FFFFFF';
         });
 
-        document.getElementById('boardSizeInput')?.addEventListener('change', e => {
+        document.getElementById('boardSizeInput')?.addEventListener('input', e => {
             const t = (e.target as HTMLTextAreaElement).value;
-            if (/^\d+$/.test(t)) this.n = Math.max(15, Number(t));
+            if (/^\d+$/.test(t)) this.n = Math.min(15, Number(t));
         })
 
         document.getElementById('startGame')?.addEventListener('click', _ => {
             this.startGame();
-        })
+        });
+
+        document.getElementById('restart')?.addEventListener('click', _ => {
+            this.restart();
+        });
     }
 
     activateMenu(){
@@ -38,7 +42,26 @@ class Controller{
             this.game = new Game(this.turn, this.n, this.n);
             const modal = document.getElementById('modal');
             if (modal) modal.style.visibility = 'hidden';
+            this.showHeader();
         }
+    }
+
+    showHeader(){
+        const header = document.getElementById('header');
+        if (header) header.style.visibility = 'visible';
+    }
+
+    hideHeader(){
+        const header = document.getElementById('header');
+        if (header) header.style.visibility = 'hidden';
+    }
+
+    restart = (): void => {
+        const modal = document.getElementById('modal');
+        if (modal) modal.style.visibility = 'visible';
+        this.game = null;
+        document.getElementById('grid')?.remove();
+        this.hideHeader()
     }
 }
 
@@ -61,6 +84,7 @@ class Game{
     }
 
     tileClicked = (tile: Tile): void => {
+
         if (tile.value < 0){
             this.placeTile(tile);
             this.nextTurn();
@@ -126,6 +150,7 @@ class Grid{
         this.tiles = [...Array(this.rows)].map((_, i) => [...Array(this.columns)].map((_, j) => new Tile(i, j, tileClicked)));
         this.element = document.createElement('div');
         this.element.classList.add('grid');
+        this.element.id = 'grid';
         this.element.style.gridTemplateRows = `repeat(${this.rows}, 1fr)`;
         this.element.style.gridTemplateColumns = `repeat(${this.columns}, 1fr)`;
         this.element.append(...this.tiles.reduce((a, v) => a.concat([...v]), []).map(t => t.element));
