@@ -8,8 +8,42 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-Object.defineProperty(exports, "__esModule", { value: true });
-var util_1 = require("./util");
+var findSequences = function (indices, grid, turn) {
+    var out = [], cur = [];
+    for (var _i = 0, indices_1 = indices; _i < indices_1.length; _i++) {
+        var _a = indices_1[_i], i = _a[0], j = _a[1];
+        if (grid[i][j] === turn) {
+            cur.push([i, j]);
+        }
+        else {
+            if (cur.length >= 5)
+                out.push(cur);
+            cur = [];
+        }
+    }
+    if (cur.length >= 5)
+        out.push(cur);
+    return out;
+};
+var primaryDiagonal = function (grid, i, j) {
+    var startX = i - Math.min(i, j);
+    var startY = j - Math.min(i, j);
+    var count = Math.min(grid.length - startX, grid.length - startY);
+    return grid.slice(startX, startX + count).map(function (_, index) { return [startX + index, startY + index]; });
+};
+var secondaryDiagonal = function (grid, i, j) {
+    var startX = i - Math.min(i, grid.length - j);
+    var startY = j + Math.min(i, grid.length - j);
+    var count = Math.min(grid.length - startX, startY + 1);
+    return grid.slice(startX, startX + count).map(function (_, index) { return [startX + index, startY - index]; });
+};
+var findPaths = function (grid, turn, i, j) {
+    var horizontal = grid[i].map(function (_, index) { return [i, index]; });
+    var vertical = grid.map(function (_, index) { return [index, j]; });
+    var prim = primaryDiagonal(grid, i, j);
+    var sec = secondaryDiagonal(grid, i, j);
+    return [horizontal, vertical, prim, sec].map(function (group) { return findSequences(group, grid, turn); }).flat();
+};
 var STATUS;
 (function (STATUS) {
     STATUS[STATUS["WHITE"] = 0] = "WHITE";
@@ -24,10 +58,19 @@ var Controller = /** @class */ (function () {
         var _this = this;
         var _a, _b, _c, _d;
         this.restart = function (status) {
+            var _a;
             var modal = document.getElementById('modal');
             if (modal)
                 modal.style.visibility = 'visible';
+            var white = document.getElementById('whiteTurn');
+            var black = document.getElementById('blackTurn');
+            if (white)
+                white.style.visibility = 'hidden';
+            if (black)
+                black.style.visibility = 'hidden';
+            clearInterval((_a = _this.game) === null || _a === void 0 ? void 0 : _a.interval);
             _this.game = null;
+            _this.switchStartTurn();
             _this.hideHeader();
             var modalHeader = document.getElementById('modalHeader');
             if (modalHeader) {
@@ -42,10 +85,7 @@ var Controller = /** @class */ (function () {
         this.n = 15;
         this.game = null;
         (_a = document.getElementById('switch')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (_) {
-            _this.turn = (_this.turn + 1) % 2;
-            var element = document.getElementById('start');
-            if (element)
-                element.style.backgroundColor = !_this.turn ? '#000000' : '#FFFFFF';
+            _this.switchStartTurn();
         });
         (_b = document.getElementById('boardSizeInput')) === null || _b === void 0 ? void 0 : _b.addEventListener('input', function (e) {
             var t = e.target.value;
@@ -59,6 +99,12 @@ var Controller = /** @class */ (function () {
             _this.restart(STATUS.RESTART);
         });
     }
+    Controller.prototype.switchStartTurn = function () {
+        this.turn = (this.turn + 1) % 2;
+        var element = document.getElementById('start');
+        if (element)
+            element.style.backgroundColor = !this.turn ? '#000000' : '#FFFFFF';
+    };
     Controller.prototype.activateMenu = function () {
         var menu = document.getElementById('modal');
         if (menu)
@@ -90,21 +136,27 @@ var Controller = /** @class */ (function () {
 var Game = /** @class */ (function () {
     function Game(turn, rows, columns, controller) {
         var _this = this;
-        this.tileClicked = function (tile) {
-            if (tile.value < 0 && _this.status === STATUS.PLAY) {
-                _this.placeTile(tile);
-                _this.nextTurn();
+        this.tick = function () {
+            var clock = _this.turn ? _this.player1Clock : _this.player2Clock;
+            clock.tick();
+            if (!clock.seconds) {
+                _this.status = _this.turn ? STATUS.BLACK : STATUS.WHITE;
+                _this.controller.restart(_this.status);
             }
+        };
+        this.tileClicked = function (tile) {
+            if (tile.value < 0 && _this.status === STATUS.PLAY)
+                _this.placeTile(tile);
         };
         this.placeTile = function (tile) {
             tile.value = _this.turn;
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
             var row = tile.row, column = tile.column;
-            var paths = (0, util_1.findPaths)(_this.grid.values(), _this.turn, row, column);
+            var paths = findPaths(_this.grid.values(), _this.turn, row, column);
             for (var _i = 0, paths_1 = paths; _i < paths_1.length; _i++) {
-                var path_2 = paths_1[_i];
-                for (var _a = 0, path_1 = path_2; _a < path_1.length; _a++) {
+                var path = paths_1[_i];
+                for (var _a = 0, path_1 = path; _a < path_1.length; _a++) {
                     var _b = path_1[_a], x = _b[0], y = _b[1];
                     _this.grid.tiles[x][y].element.classList.add('path');
                 }
@@ -120,11 +172,29 @@ var Game = /** @class */ (function () {
                 _this.status = STATUS.DRAW;
             }
             ;
-            if (_this.gameOver)
+            if (_this.gameOver) {
                 _this.controller.restart(_this.status);
+            }
+            else {
+                _this.nextTurn();
+            }
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
+            var white = document.getElementById('whiteTurn');
+            var black = document.getElementById('blackTurn');
+            if (_this.turn) {
+                if (white)
+                    white.style.visibility = 'visible';
+                if (black)
+                    black.style.visibility = 'hidden';
+            }
+            else {
+                if (white)
+                    white.style.visibility = 'hidden';
+                if (black)
+                    black.style.visibility = 'visible';
+            }
         };
         this.restart = function () {
             _this.turn = _this.start;
@@ -143,8 +213,38 @@ var Game = /** @class */ (function () {
         this.placed = 0;
         this.controller = controller;
         this.status = STATUS.PLAY;
+        this.player1Clock = new Clock(30, 'p1clock');
+        this.player2Clock = new Clock(30, 'p2clock');
+        var t = document.getElementById(turn ? 'whiteTurn' : 'blackTurn');
+        if (t)
+            t.style.visibility = 'visible';
+        this.interval = setInterval(this.tick, 1000);
     }
     return Game;
+}());
+var Clock = /** @class */ (function () {
+    function Clock(seconds, id) {
+        var _this = this;
+        this.tick = function () {
+            _this.seconds = Math.max(0, _this.seconds - 1);
+            _this.setClock();
+        };
+        this.setClock = function () {
+            var clock = document.getElementById(_this.id);
+            if (clock)
+                clock.textContent = _this.format();
+        };
+        this.seconds = seconds;
+        this.id = id;
+        this.setClock();
+    }
+    Clock.prototype.format = function () {
+        var minutes = String(Math.floor(this.seconds / 60)).padStart(2, '0');
+        ;
+        var seconds = String(this.seconds % 60).padStart(2, '0');
+        return "".concat(minutes, ":").concat(seconds);
+    };
+    return Clock;
 }());
 var Header = /** @class */ (function () {
     function Header(restart) {
