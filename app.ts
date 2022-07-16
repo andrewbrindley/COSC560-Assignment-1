@@ -44,13 +44,11 @@ enum STATUS {
 };
 
 class Controller{
-    playing: boolean
     turn: number
     n: number
     game: Game | null;
 
     constructor(){
-        this.playing = false
         this.turn = 0;
         this.n = 15;
         this.game = null;
@@ -60,7 +58,7 @@ class Controller{
 
         document.getElementById('boardSizeInput')?.addEventListener('input', e => {
             const t = (e.target as HTMLTextAreaElement).value;
-            if (/^\d+$/.test(t)) this.n = Math.min(15, Number(t));
+            if (/^\d+$/.test(t)) this.n = Math.max(5, Math.min(15, Number(t)));
         })
 
         document.getElementById('startGame')?.addEventListener('click', _ => {
@@ -84,7 +82,7 @@ class Controller{
     }
 
     startGame(){
-        if (0 <= this.n && this.n < 16){
+        if (5 <= this.n && this.n < 16){
             document.getElementById('grid')?.remove();
             this.game = new Game(this.turn, this.n, this.n, this);
             const modal = document.getElementById('modal');
@@ -150,7 +148,7 @@ class Game{
         this.player1Clock = new Clock(30, 'p1clock');
         this.player2Clock = new Clock(30, 'p2clock');
         const t = document.getElementById(turn ? 'whiteTurn' : 'blackTurn');
-        if (t)t.style.visibility = 'visible';
+        if (t) t.style.visibility = 'visible';
         this.interval = setInterval(this.tick, 1000);
     }
 
@@ -164,9 +162,7 @@ class Game{
     }
 
     tileClicked = (tile: Tile): void => {
-
         if (tile.value < 0 && this.status === STATUS.PLAY) this.placeTile(tile);
-        
     }
 
     placeTile = (tile: Tile): void => {

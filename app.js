@@ -80,7 +80,6 @@ var Controller = /** @class */ (function () {
                             : 'New game';
             }
         };
-        this.playing = false;
         this.turn = 0;
         this.n = 15;
         this.game = null;
@@ -90,7 +89,7 @@ var Controller = /** @class */ (function () {
         (_b = document.getElementById('boardSizeInput')) === null || _b === void 0 ? void 0 : _b.addEventListener('input', function (e) {
             var t = e.target.value;
             if (/^\d+$/.test(t))
-                _this.n = Math.min(15, Number(t));
+                _this.n = Math.max(5, Math.min(15, Number(t)));
         });
         (_c = document.getElementById('startGame')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', function (_) {
             _this.startGame();
@@ -112,7 +111,7 @@ var Controller = /** @class */ (function () {
     };
     Controller.prototype.startGame = function () {
         var _a;
-        if (0 <= this.n && this.n < 16) {
+        if (5 <= this.n && this.n < 16) {
             (_a = document.getElementById('grid')) === null || _a === void 0 ? void 0 : _a.remove();
             this.game = new Game(this.turn, this.n, this.n, this);
             var modal = document.getElementById('modal');
