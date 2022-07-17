@@ -1,4 +1,4 @@
-const findSequences = function(indices: number[][], grid: number[][], turn: number): number[][][]{
+const findSequences = (indices: number[][], grid: number[][], turn: number): number[][][] => {
     let out: number[][][] = [],
         cur: number[][] = [];
     for (const [i, j] of indices){
@@ -13,21 +13,21 @@ const findSequences = function(indices: number[][], grid: number[][], turn: numb
     return out;
 }
 
-const primaryDiagonal = function(grid: number[][], i: number, j: number): number[][]{
+const primaryDiagonal = (grid: number[][], i: number, j: number): number[][] => {
     const startX = i - Math.min(i, j);
     const startY = j - Math.min(i, j);
     const count = Math.min(grid.length - startX, grid.length - startY);
     return grid.slice(startX, startX + count).map((_, index) => [startX + index, startY + index]);
 }
 
-const secondaryDiagonal = function(grid: number[][], i: number, j: number): number[][]{
+const secondaryDiagonal = (grid: number[][], i: number, j: number): number[][] => {
     const startX = i - Math.min(i, grid.length - j);
     const startY = j + Math.min(i, grid.length - j);
     const count = Math.min(grid.length - startX, startY + 1);
     return grid.slice(startX, startX + count).map((_, index) => [startX + index, startY - index]);
 }
 
-const findPaths = function(grid: number[][], turn: number, i: number, j: number): number[][][] {
+const findPaths = (grid: number[][], turn: number, i: number, j: number): number[][][] => {
     const horizontal = grid[i].map((_, index) => [i, index]);
     const vertical = grid.map((_, index) => [index, j]);
     const prim = primaryDiagonal(grid, i, j);
@@ -50,23 +50,28 @@ class Controller{
 
     constructor(){
         this.turn = 0;
-        this.n = 15;
+        this.n = 9;
         this.game = null;
         document.getElementById('switch')?.addEventListener('click', _ => {
             this.switchStartTurn();
         });
 
-        document.getElementById('boardSizeInput')?.addEventListener('input', e => {
-            const t = (e.target as HTMLTextAreaElement).value;
-            if (/^\d+$/.test(t)) this.n = Math.max(5, Math.min(15, Number(t)));
-        })
+        const boardSizeInput = <HTMLInputElement>document.getElementById('boardSizeInput');
+        if (boardSizeInput){
+            boardSizeInput.value = String(this.n);
+            boardSizeInput.addEventListener('input', e => {
+                const inp = Number((e.target as HTMLInputElement).value);
+                if (5 <= inp && inp <= 15) this.n = inp;
+                boardSizeInput.value = String(this.n);
+            }
+        )};
 
         document.getElementById('startGame')?.addEventListener('click', _ => {
             this.startGame();
         });
 
         document.getElementById('restart')?.addEventListener('click', _ => {
-            this.restart(STATUS.RESTART);
+            if (this.game) this.restart(this.game.status);
         });
     }
 
@@ -84,7 +89,7 @@ class Controller{
     startGame(){
         if (5 <= this.n && this.n < 16){
             document.getElementById('grid')?.remove();
-            this.game = new Game(this.turn, this.n, this.n, this);
+            this.game = new Game(this.turn, this.n, this);
             const modal = document.getElementById('modal');
             if (modal) modal.style.visibility = 'hidden';
             this.showHeader();
@@ -128,7 +133,6 @@ class Game{
     start: number
     header: Header
     grid: Grid
-    gameOver: boolean
     placed: number
     controller: Controller
     status: STATUS
@@ -136,12 +140,11 @@ class Game{
     player2Clock: Clock
     interval: ReturnType<typeof setTimeout>;
 
-    constructor(turn: number, rows: number, columns: number, controller: Controller){
+    constructor(turn: number, n: number, controller: Controller){
         this.turn = turn;
         this.start = turn;
         this.header = new Header(() => this.restart());
-        this.grid = new Grid(rows, columns, this.tileClicked);
-        this.gameOver = false;
+        this.grid = new Grid(n, n, this.tileClicked);
         this.placed = 0;
         this.controller = controller;
         this.status = STATUS.PLAY;
@@ -154,7 +157,7 @@ class Game{
 
     tick = (): void => {
         const clock = this.turn ? this.player1Clock : this.player2Clock;
-        clock.tick();
+        if (this.status === STATUS.PLAY) clock.tick();
         if (!clock.seconds){
             this.status = this.turn ? STATUS.BLACK : STATUS.WHITE;
             this.controller.restart(this.status);
@@ -165,30 +168,42 @@ class Game{
         if (tile.value < 0 && this.status === STATUS.PLAY) this.placeTile(tile);
     }
 
+    fillPath = (paths: number[][][]) => {
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i < paths[0].length){
+                const [x, y] = paths[0][i++];
+                this.grid.tiles[x][y].element.classList.add('path');
+            } else {
+                clearInterval(interval);
+                return this.handlePlacement(paths)
+            }
+        }, 100);
+    }
+
     placeTile = (tile: Tile): void => {
         tile.value = this.turn;
         tile.element.classList.remove('empty');
         tile.element.classList.add(!this.turn ? 'black' : 'white');
         const {row, column} = tile;
         const paths: number[][][] = findPaths(this.grid.values(), this.turn, row, column);
-        for (const path of paths){
-            for (const [x, y] of path){
-                this.grid.tiles[x][y].element.classList.add('path');
-            }
-        };
         this.placed += 1;
+        if (paths.length){
+            this.fillPath(paths);
+        } else {
+            this.handlePlacement(paths);
+        }
+    }
+
+    handlePlacement = (paths: number[][][]): void => {
         if (paths.length > 0){
-            this.gameOver = true;
             this.status = !this.turn ? STATUS.BLACK : STATUS.WHITE;
         } else if (this.placed == this.grid.rows * this.grid.columns){
-            this.gameOver = true;
             this.status = STATUS.DRAW;
+            return this.controller.restart(this.status);
         };
-        if (this.gameOver){
-            this.controller.restart(this.status);
-        } else {
-            this.nextTurn();
-        }
+
+        if (this.status === STATUS.PLAY) this.nextTurn();
     }
 
     nextTurn = (): void => {

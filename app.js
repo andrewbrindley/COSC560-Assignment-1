@@ -56,7 +56,7 @@ var STATUS;
 var Controller = /** @class */ (function () {
     function Controller() {
         var _this = this;
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         this.restart = function (status) {
             var _a;
             var modal = document.getElementById('modal');
@@ -81,21 +81,28 @@ var Controller = /** @class */ (function () {
             }
         };
         this.turn = 0;
-        this.n = 15;
+        this.n = 9;
         this.game = null;
         (_a = document.getElementById('switch')) === null || _a === void 0 ? void 0 : _a.addEventListener('click', function (_) {
             _this.switchStartTurn();
         });
-        (_b = document.getElementById('boardSizeInput')) === null || _b === void 0 ? void 0 : _b.addEventListener('input', function (e) {
-            var t = e.target.value;
-            if (/^\d+$/.test(t))
-                _this.n = Math.max(5, Math.min(15, Number(t)));
-        });
-        (_c = document.getElementById('startGame')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', function (_) {
+        var boardSizeInput = document.getElementById('boardSizeInput');
+        if (boardSizeInput) {
+            boardSizeInput.value = String(this.n);
+            boardSizeInput.addEventListener('input', function (e) {
+                var inp = Number(e.target.value);
+                if (5 <= inp && inp <= 15)
+                    _this.n = inp;
+                boardSizeInput.value = String(_this.n);
+            });
+        }
+        ;
+        (_b = document.getElementById('startGame')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', function (_) {
             _this.startGame();
         });
-        (_d = document.getElementById('restart')) === null || _d === void 0 ? void 0 : _d.addEventListener('click', function (_) {
-            _this.restart(STATUS.RESTART);
+        (_c = document.getElementById('restart')) === null || _c === void 0 ? void 0 : _c.addEventListener('click', function (_) {
+            if (_this.game)
+                _this.restart(_this.game.status);
         });
     }
     Controller.prototype.switchStartTurn = function () {
@@ -113,7 +120,7 @@ var Controller = /** @class */ (function () {
         var _a;
         if (5 <= this.n && this.n < 16) {
             (_a = document.getElementById('grid')) === null || _a === void 0 ? void 0 : _a.remove();
-            this.game = new Game(this.turn, this.n, this.n, this);
+            this.game = new Game(this.turn, this.n, this);
             var modal = document.getElementById('modal');
             if (modal)
                 modal.style.visibility = 'hidden';
@@ -133,11 +140,12 @@ var Controller = /** @class */ (function () {
     return Controller;
 }());
 var Game = /** @class */ (function () {
-    function Game(turn, rows, columns, controller) {
+    function Game(turn, n, controller) {
         var _this = this;
         this.tick = function () {
             var clock = _this.turn ? _this.player1Clock : _this.player2Clock;
-            clock.tick();
+            if (_this.status === STATUS.PLAY)
+                clock.tick();
             if (!clock.seconds) {
                 _this.status = _this.turn ? STATUS.BLACK : STATUS.WHITE;
                 _this.controller.restart(_this.status);
@@ -147,36 +155,44 @@ var Game = /** @class */ (function () {
             if (tile.value < 0 && _this.status === STATUS.PLAY)
                 _this.placeTile(tile);
         };
+        this.fillPath = function (paths) {
+            var i = 0;
+            var interval = setInterval(function () {
+                if (i < paths[0].length) {
+                    var _a = paths[0][i++], x = _a[0], y = _a[1];
+                    _this.grid.tiles[x][y].element.classList.add('path');
+                }
+                else {
+                    clearInterval(interval);
+                    return _this.handlePlacement(paths);
+                }
+            }, 100);
+        };
         this.placeTile = function (tile) {
             tile.value = _this.turn;
             tile.element.classList.remove('empty');
             tile.element.classList.add(!_this.turn ? 'black' : 'white');
             var row = tile.row, column = tile.column;
             var paths = findPaths(_this.grid.values(), _this.turn, row, column);
-            for (var _i = 0, paths_1 = paths; _i < paths_1.length; _i++) {
-                var path = paths_1[_i];
-                for (var _a = 0, path_1 = path; _a < path_1.length; _a++) {
-                    var _b = path_1[_a], x = _b[0], y = _b[1];
-                    _this.grid.tiles[x][y].element.classList.add('path');
-                }
-            }
-            ;
             _this.placed += 1;
+            if (paths.length) {
+                _this.fillPath(paths);
+            }
+            else {
+                _this.handlePlacement(paths);
+            }
+        };
+        this.handlePlacement = function (paths) {
             if (paths.length > 0) {
-                _this.gameOver = true;
                 _this.status = !_this.turn ? STATUS.BLACK : STATUS.WHITE;
             }
             else if (_this.placed == _this.grid.rows * _this.grid.columns) {
-                _this.gameOver = true;
                 _this.status = STATUS.DRAW;
+                return _this.controller.restart(_this.status);
             }
             ;
-            if (_this.gameOver) {
-                _this.controller.restart(_this.status);
-            }
-            else {
+            if (_this.status === STATUS.PLAY)
                 _this.nextTurn();
-            }
         };
         this.nextTurn = function () {
             _this.turn = (_this.turn + 1) % 2;
@@ -207,8 +223,7 @@ var Game = /** @class */ (function () {
         this.turn = turn;
         this.start = turn;
         this.header = new Header(function () { return _this.restart(); });
-        this.grid = new Grid(rows, columns, this.tileClicked);
-        this.gameOver = false;
+        this.grid = new Grid(n, n, this.tileClicked);
         this.placed = 0;
         this.controller = controller;
         this.status = STATUS.PLAY;
