@@ -5,11 +5,11 @@ const findSequences = function(indices: number[][], grid: number[][], turn: numb
         if (grid[i][j] === turn){
             cur.push([i, j]);
         } else {
-            if (cur.length >= 5) out.push(cur);
+            if (cur.length == 5) out.push(cur);
             cur = [];
         }
     }
-    if (cur.length >= 5) out.push(cur);
+    if (cur.length == 5) out.push(cur);
     return out;
 }
 

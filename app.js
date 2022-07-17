@@ -16,12 +16,12 @@ var findSequences = function (indices, grid, turn) {
             cur.push([i, j]);
         }
         else {
-            if (cur.length >= 5)
+            if (cur.length == 5)
                 out.push(cur);
             cur = [];
         }
     }
-    if (cur.length >= 5)
+    if (cur.length == 5)
         out.push(cur);
     return out;
 };
