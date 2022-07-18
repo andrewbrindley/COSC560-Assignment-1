@@ -57,14 +57,13 @@ class Controller{
         });
 
         const boardSizeInput = <HTMLInputElement>document.getElementById('boardSizeInput');
-        if (boardSizeInput){
+        boardSizeInput.value = String(this.n);
+        boardSizeInput.addEventListener('input', e => {
+            const inp = Number((e.target as HTMLInputElement).value);
+            if (5 <= inp && inp <= 15) this.n = inp;
             boardSizeInput.value = String(this.n);
-            boardSizeInput.addEventListener('input', e => {
-                const inp = Number((e.target as HTMLInputElement).value);
-                if (5 <= inp && inp <= 15) this.n = inp;
-                boardSizeInput.value = String(this.n);
-            }
-        )};
+        });
+        
 
         document.getElementById('startGame')?.addEventListener('click', _ => {
             this.startGame();
@@ -82,8 +81,8 @@ class Controller{
     }
 
     activateMenu(){
-        const menu = document.getElementById('modal');
-        if (menu) menu.style.visibility = 'visible';
+        const menu = <HTMLDivElement> document.getElementById('modal');
+        menu.style.visibility = 'visible';
     }
 
     startGame(){
@@ -97,13 +96,13 @@ class Controller{
     }
 
     showHeader(){
-        const header = document.getElementById('header');
-        if (header) header.style.visibility = 'visible';
+        const header = <HTMLDivElement> document.getElementById('header');
+        header.style.visibility = 'visible';
     }
 
     hideHeader(){
-        const header = document.getElementById('header');
-        if (header) header.style.visibility = 'hidden';
+        const header = <HTMLDivElement> document.getElementById('header');
+        header.style.visibility = 'hidden';
     }
 
     restart = (status: STATUS): void => {
@@ -174,6 +173,7 @@ class Game{
             if (i < paths[0].length){
                 const [x, y] = paths[0][i++];
                 this.grid.tiles[x][y].element.classList.add('path');
+                
             } else {
                 clearInterval(interval);
                 return this.handlePlacement(paths)

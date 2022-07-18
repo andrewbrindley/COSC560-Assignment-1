@@ -87,16 +87,13 @@ var Controller = /** @class */ (function () {
             _this.switchStartTurn();
         });
         var boardSizeInput = document.getElementById('boardSizeInput');
-        if (boardSizeInput) {
-            boardSizeInput.value = String(this.n);
-            boardSizeInput.addEventListener('input', function (e) {
-                var inp = Number(e.target.value);
-                if (5 <= inp && inp <= 15)
-                    _this.n = inp;
-                boardSizeInput.value = String(_this.n);
-            });
-        }
-        ;
+        boardSizeInput.value = String(this.n);
+        boardSizeInput.addEventListener('input', function (e) {
+            var inp = Number(e.target.value);
+            if (5 <= inp && inp <= 15)
+                _this.n = inp;
+            boardSizeInput.value = String(_this.n);
+        });
         (_b = document.getElementById('startGame')) === null || _b === void 0 ? void 0 : _b.addEventListener('click', function (_) {
             _this.startGame();
         });
@@ -113,8 +110,7 @@ var Controller = /** @class */ (function () {
     };
     Controller.prototype.activateMenu = function () {
         var menu = document.getElementById('modal');
-        if (menu)
-            menu.style.visibility = 'visible';
+        menu.style.visibility = 'visible';
     };
     Controller.prototype.startGame = function () {
         var _a;
@@ -129,13 +125,11 @@ var Controller = /** @class */ (function () {
     };
     Controller.prototype.showHeader = function () {
         var header = document.getElementById('header');
-        if (header)
-            header.style.visibility = 'visible';
+        header.style.visibility = 'visible';
     };
     Controller.prototype.hideHeader = function () {
         var header = document.getElementById('header');
-        if (header)
-            header.style.visibility = 'hidden';
+        header.style.visibility = 'hidden';
     };
     return Controller;
 }());
